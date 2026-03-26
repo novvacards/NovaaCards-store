@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Novaacards</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080A0F;--s1:#0D1018;--s2:#131720;--s3:#181D28;
+  --b1:rgba(255,255,255,0.06);--b2:rgba(255,255,255,0.1);--b3:rgba(255,255,255,0.15);
+  --accent:#5B8EF0;--accent2:#8B5CF6;--ton:#0098EA;
+  --green:#10B981;--yellow:#F59E0B;--red:#EF4444;
+  --t1:#F0F2F8;--t2:#8892A8;--t3:#4A5268;
+  --r:16px;--r2:12px;--r3:8px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--t1);font-family:'Inter',sans-serif;font-size:14px;}
+.app{height:100vh;display:flex;flex-direction:column;max-width:430px;margin:0 auto;}
+.page-content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:80px;}
+.page-content::-webkit-scrollbar{display:none;}
+.bg-orbs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:0.1;}
+.orb1{width:400px;height:400px;background:#5B8EF0;top:-100px;right:-100px;animation:orb1 12s ease-in-out infinite alternate;}
+.orb2{width:350px;height:350px;background:#8B5CF6;bottom:-80px;left:-80px;animation:orb2 15s ease-in-out infinite alternate;}
+@keyframes orb1{from{transform:translate(0,0)}to{transform:translate(-60px,80px)}}
+@keyframes orb2{from{transform:translate(0,0)}to{transform:translate(60px,-60px)}}
+.header{padding:14px 16px 12px;display:flex;align-items:center;justify-content:space-between;background:rgba(8,10,15,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--b1);position:relative;z-index:10;flex-shrink:0;}
+.header-left{display:flex;align-items:center;gap:10px;}
+.logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 20px rgba(91,142,240,0.4);}
+.logo-name{font-size:16px;font-weight:800;letter-spacing:-0.5px;}
+.header-right{display:flex;align-items:center;gap:8px;}
+.pts-badge{display:flex;align-items:center;gap:4px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.2);padding:5px 10px;border-radius:20px;font-size:11px;font-weight:700;color:#FCD34D;}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.4}}
+.stats-bar{display:flex;background:var(--s1);border-bottom:1px solid var(--b1);}
+.stat{flex:1;text-align:center;padding:10px 4px;}
+.stat-num{font-size:14px;font-weight:800;}
+.stat-label{font-size:9px;color:var(--t2);margin-top:1px;font-weight:500;text-transform:uppercase;letter-spacing:0.5px;}
+.hero{margin:14px;background:linear-gradient(135deg,#0C1829,#0D1020);border:1px solid rgba(91,142,240,0.2);border-radius:20px;padding:20px;position:relative;overflow:hidden;}
+.hero::after{content:'🎁';position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:60px;opacity:0.07;}
+.hero-pill{display:inline-flex;align-items:center;gap:5px;background:rgba(91,142,240,0.12);border:1px solid rgba(91,142,240,0.25);color:#93B4F8;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:4px 10px;border-radius:20px;margin-bottom:10px;}
+.hero h1{font-size:22px;font-weight:900;line-height:1.2;letter-spacing:-0.5px;margin-bottom:6px;}
+.hero h1 span{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero p{font-size:12px;color:var(--t2);line-height:1.6;margin-bottom:14px;}
+.hero-tags{display:flex;gap:6px;flex-wrap:wrap;}
+.hero-tag{font-size:11px;font-weight:500;color:var(--t2);background:rgba(255,255,255,0.05);border:1px solid var(--b2);padding:4px 10px;border-radius:20px;}
+.search-wrap{padding:0 14px 12px;}
+.search{display:flex;align-items:center;gap:8px;background:var(--s2);border:1px solid var(--b2);border-radius:12px;padding:10px 14px;}
+.search input{background:none;border:none;outline:none;color:var(--t1);font-family:inherit;font-size:13px;flex:1;}
+.search input::placeholder{color:var(--t3);}
+.cats{display:flex;gap:7px;overflow-x:auto;padding:0 14px 12px;scrollbar-width:none;}
+.cats::-webkit-scrollbar{display:none;}
+.cat{flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--b1);background:var(--s2);color:var(--t2);cursor:pointer;font-family:inherit;white-space:nowrap;transition:all 0.2s;}
+.cat.on{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent;box-shadow:0 4px 14px rgba(91,142,240,0.35);}
+.sec{padding:0 14px;margin-bottom:20px;}
+.sec-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.sec-title{font-size:14px;font-weight:700;}
+.sec-sub{font-size:11px;color:var(--t2);}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* PREMIUM CARD DESIGNS */
+.card{background:var(–s1);border:1px solid var(–b1);border-radius:var(–r);overflow:hidden;cursor:pointer;transition:all 0.2s;animation:up 0.35s ease-out both;}
+.card:active{transform:scale(0.97);}
+@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.card-visual{height:96px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.card-visual svg{position:absolute;inset:0;width:100%;height:100%;}
+.card-visual-content{position:relative;z-index:2;text-align:center;}
+.card-brand{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;opacity:0.9;}
+.card-icon-big{font-size:28px;display:block;margin-bottom:2px;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.4));}
+.card-info{padding:10px 11px 11px;}
+.card-name{font-size:12px;font-weight:700;margin-bottom:2px;}
+.card-price{font-size:11px;color:var(–accent);font-weight:600;margin-bottom:6px;}
+.card-foot{display:flex;align-items:center;justify-content:space-between;}
+.card-chip{font-size:9px;font-weight:700;background:rgba(91,142,240,0.1);color:#93B4F8;padding:2px 6px;border-radius:4px;letter-spacing:0.5px;}
+
+.trust-box{margin:0 14px 20px;background:var(–s1);border:1px solid var(–b1);border-radius:var(–r);overflow:hidden;}
+.trust-title{padding:12px 14px 8px;font-size:11px;font-weight:700;color:var(–t2);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(–b1);}
+.trust-row{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(–b1);}
+.trust-row:last-child{border:none;}
+.ti{width:34px;height:34px;border-radius:10px;background:var(–s2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.tt{flex:1;}
+.tt-name{font-size:12px;font-weight:600;margin-bottom:2px;}
+.tt-desc{font-size:11px;color:var(–t2);line-height:1.4;}
+.tc{color:var(–green);font-weight:700;font-size:13px;}
+.rev-scroll{display:flex;gap:10px;overflow-x:auto;padding:0 14px 12px;scrollbar-width:none;}
+.rev-scroll::-webkit-scrollbar{display:none;}
+.rev{flex-shrink:0;width:200px;background:var(–s1);border:1px solid var(–b1);border-radius:var(–r2);padding:12px;}
+.rev-stars{color:#F59E0B;font-size:11px;margin-bottom:6px;}
+.rev-text{font-size:11px;color:var(–t2);line-height:1.5;margin-bottom:8px;}
+.rev-user{display:flex;align-items:center;gap:7px;}
+.rev-av{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;}
+.rev-name{font-size:11px;font-weight:600;}
+.rev-date{font-size:10px;color:var(–t3);}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:100;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity 0.25s;backdrop-filter:blur(10px);}
+.overlay.on{opacity:1;pointer-events:all;}
+.sheet{background:var(–s1);border-radius:24px 24px 0 0;border-top:1px solid var(–b2);width:100%;max-height:92vh;overflow-y:auto;transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.34,1.1,0.64,1);}
+.overlay.on .sheet{transform:translateY(0);}
+.sheet::-webkit-scrollbar{display:none;}
+.handle{width:36px;height:4px;background:var(–b3);border-radius:2px;margin:10px auto 0;}
+.sheet-body{padding:16px 18px 36px;}
+.sheet-img{height:110px;border-radius:14px;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-bottom:14px;position:relative;}
+.sheet-img svg{position:absolute;inset:0;width:100%;height:100%;}
+.sheet-img-content{position:relative;z-index:2;text-align:center;}
+.sheet-title{font-size:19px;font-weight:800;margin-bottom:4px;}
+.sheet-desc{font-size:12px;color:var(–t2);line-height:1.5;margin-bottom:16px;}
+.label{font-size:10px;font-weight:700;color:var(–t2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.amt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:16px;}
+.amt{padding:9px 4px;border-radius:10px;border:1px solid var(–b1);background:var(–s2);color:var(–t1);font-size:12px;font-weight:700;cursor:pointer;text-align:center;font-family:inherit;transition:all 0.15s;}
+.amt .asub{font-size:9px;color:var(–t2);font-weight:400;margin-top:2px;}
+.amt.on{border-color:var(–accent);background:rgba(91,142,240,0.12);color:var(–accent);}
+.amt.on .asub{color:var(–accent);opacity:0.7;}
+.summary{background:var(–s2);border:1px solid var(–b1);border-radius:12px;padding:12px;margin-bottom:16px;}
+.sum-row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid var(–b1);}
+.sum-row:last-child{border:none;padding-bottom:0;}
+.sum-label{color:var(–t2);}
+.sum-val{font-weight:600;}
+.sum-val.a{color:var(–accent);font-size:14px;font-weight:800;}
+.sum-val.g{color:var(–green);}
+.btn-main{width:100%;padding:15px;background:linear-gradient(135deg,var(–accent),var(–accent2));border:none;border-radius:13px;color:#fff;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 6px 20px rgba(91,142,240,0.35);transition:all 0.15s;letter-spacing:0.2px;}
+.btn-main:active{transform:scale(0.98);}
+.pay-methods{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.pay-method{padding:12px 8px;border-radius:12px;border:1px solid var(–b1);background:var(–s2);cursor:pointer;text-align:center;transition:all 0.2s;font-family:inherit;}
+.pay-method.on{border-color:var(–accent);background:rgba(91,142,240,0.1);}
+.pay-method.ton-m{border-color:rgba(0,152,234,0.3);background:rgba(0,152,234,0.08);}
+.pay-method.ton-m.on{border-color:var(–ton);background:rgba(0,152,234,0.15);}
+.pm-icon{font-size:22px;margin-bottom:5px;}
+.pm-name{font-size:12px;font-weight:700;}
+.pm-sub{font-size:10px;color:var(–t2);margin-top:2px;}
+.pay-method.on .pm-name{color:var(–accent);}
+.pay-method.ton-m.on .pm-name{color:#4FC3F7;}
+.addr-box{background:var(–s2);border:1px solid rgba(91,142,240,0.2);border-radius:11px;padding:12px;font-family:monospace;font-size:11px;color:#93B4F8;word-break:break-all;letter-spacing:0.3px;margin-bottom:10px;line-height:1.6;}
+.btn-copy{width:100%;padding:11px;border-radius:10px;border:1px solid rgba(91,142,240,0.25);background:rgba(91,142,240,0.07);color:var(–accent);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:10px;}
+.btn-ton{width:100%;padding:14px;border-radius:12px;background:linear-gradient(135deg,#0098EA,#006BB3);border:none;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(0,152,234,0.4);margin-bottom:10px;}
+.warn{background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.18);border-radius:10px;padding:10px 12px;font-size:11px;color:#FCD34D;line-height:1.5;margin-bottom:12px;}
+.btn-confirm{width:100%;padding:14px;border-radius:12px;background:linear-gradient(135deg,var(–green),#059669);border:none;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(16,185,129,0.3);}
+.bottom-nav{position:relative;z-index:10;background:rgba(8,10,15,0.95);backdrop-filter:blur(20px);border-top:1px solid var(–b1);display:flex;padding:8px 0 20px;flex-shrink:0;}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 0;}
+.nav-ic{font-size:20px;opacity:0.3;transition:all 0.2s;}
+.nav-lb{font-size:9px;font-weight:600;color:var(–t3);transition:color 0.2s;}
+.nav-btn.on .nav-ic{opacity:1;}
+.nav-btn.on .nav-lb{color:var(–accent);}
+.page{display:none;}
+.page.on{display:block;}
+.prof-hero{margin:14px;background:linear-gradient(135deg,#0C1829,#110D1E);border:1px solid var(–b2);border-radius:20px;padding:20px;text-align:center;}
+.prof-av{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(–accent),var(–accent2));display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;margin:0 auto 12px;border:3px solid rgba(91,142,240,0.3);box-shadow:0 0 24px rgba(91,142,240,0.3);}
+.prof-name{font-size:18px;font-weight:800;margin-bottom:3px;}
+.prof-id{font-size:11px;color:var(–t2);margin-bottom:14px;}
+.prof-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.ps{background:rgba(255,255,255,0.04);border:1px solid var(–b1);border-radius:10px;padding:10px 6px;text-align:center;}
+.ps-num{font-size:15px;font-weight:800;}
+.ps-label{font-size:9px;color:var(–t2);margin-top:2px;text-transform:uppercase;letter-spacing:0.5px;}
+.loyalty-card{margin:0 14px 14px;background:linear-gradient(135deg,#1A1200,#251800);border:1px solid rgba(245,158,11,0.2);border-radius:var(–r);padding:16px;position:relative;overflow:hidden;}
+.loyalty-card::after{content:‘⭐’;position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:50px;opacity:0.1;}
+.loy-label{font-size:10px;font-weight:700;color:#FCD34D;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.loy-pts{font-size:28px;font-weight:900;color:#FCD34D;margin-bottom:4px;}
+.loy-sub{font-size:11px;color:var(–t2);margin-bottom:12px;}
+.loy-bar-bg{background:rgba(255,255,255,0.08);border-radius:4px;height:6px;margin-bottom:6px;}
+.loy-bar{height:6px;border-radius:4px;background:linear-gradient(90deg,#F59E0B,#FCD34D);transition:width 0.5s;}
+.loy-next{font-size:10px;color:var(–t2);}
+.ref-card{margin:0 14px 14px;background:var(–s1);border:1px solid var(–b1);border-radius:var(–r);padding:16px;}
+.ref-title{font-size:13px;font-weight:700;margin-bottom:4px;}
+.ref-desc{font-size:11px;color:var(–t2);line-height:1.5;margin-bottom:12px;}
+.ref-code{background:var(–s2);border:1px solid var(–b2);border-radius:10px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.ref-code-text{font-size:14px;font-weight:800;color:var(–accent);letter-spacing:1px;}
+.ref-copy{background:rgba(91,142,240,0.1);border:1px solid rgba(91,142,240,0.2);color:var(–accent);font-size:11px;font-weight:700;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit;}
+.ref-info{display:flex;gap:8px;}
+.ref-info-item{flex:1;background:var(–s2);border:1px solid var(–b1);border-radius:10px;padding:10px;text-align:center;}
+.rii-num{font-size:16px;font-weight:800;color:var(–accent);}
+.rii-label{font-size:10px;color:var(–t2);margin-top:2px;}
+.empty{text-align:center;padding:50px 20px;}
+.empty-ic{font-size:40px;opacity:0.2;margin-bottom:12px;}
+.empty-title{font-size:16px;font-weight:700;margin-bottom:6px;}
+.empty-desc{font-size:12px;color:var(–t2);line-height:1.5;}
+.order-item{background:var(–s1);border:1px solid var(–b1);border-radius:var(–r2);padding:13px;margin-bottom:9px;display:flex;align-items:center;gap:11px;}
+.oi-em{font-size:24px;}
+.oi-info{flex:1;}
+.oi-name{font-size:12px;font-weight:700;margin-bottom:2px;}
+.oi-price{font-size:11px;color:var(–t2);}
+.oi-date{font-size:10px;color:var(–t3);margin-top:1px;}
+.badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;}
+.b-pending{background:rgba(245,158,11,0.1);color:#FCD34D;}
+.b-done{background:rgba(16,185,129,0.1);color:var(–green);}
+.supp-box{margin:0 14px 14px;background:var(–s1);border:1px solid var(–b1);border-radius:var(–r);overflow:hidden;}
+.supp-row{display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid var(–b1);cursor:pointer;}
+.supp-row:last-child{border:none;}
+.si{width:34px;height:34px;border-radius:10px;background:var(–s2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.st{flex:1;}
+.st-name{font-size:12px;font-weight:600;margin-bottom:2px;}
+.st-desc{font-size:11px;color:var(–t2);}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(8px);background:var(–s2);border:1px solid var(–b2);color:var(–t1);padding:9px 18px;border-radius:20px;font-size:12px;font-weight:600;opacity:0;transition:all 0.25s;z-index:999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.5);}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+
+</head>
+<body>
+<div class="bg-orbs"><div class="orb orb1"></div><div class="orb orb2"></div></div>
+<div class="app">
+  <div class="header">
+    <div class="header-left">
+      <div class="logo">🎁</div>
+      <span class="logo-name">Novaacards</span>
+    </div>
+    <div class="header-right">
+      <div class="pts-badge">⭐ <span id="hdr-pts">0</span> pts</div>
+      <div class="live-dot"></div>
+    </div>
+  </div>
+  <div class="page-content">
+
+```
+<!-- HOME -->
+<div class="page on" id="pg-home">
+  <div class="stats-bar">
+    <div class="stat"><div class="stat-num" style="color:var(--accent)">2,400+</div><div class="stat-label">Orders</div></div>
+    <div class="stat"><div class="stat-num" style="color:var(--yellow)">4.9 ⭐</div><div class="stat-label">Rating</div></div>
+    <div class="stat"><div class="stat-num" style="color:var(--green)">~5min</div><div class="stat-label">Delivery</div></div>
+    <div class="stat"><div class="stat-num" style="color:#4FC3F7">3</div><div class="stat-label">Networks</div></div>
+  </div>
+  <div class="hero">
+    <div class="hero-pill">⚡ Instant Delivery</div>
+    <h1>Buy Gift Cards<br>with <span>Crypto</span></h1>
+    <p>Global gift cards delivered instantly. USDT & TON accepted. 100% authentic cards.</p>
+    <div class="hero-tags">
+      <div class="hero-tag">🔒 Secure</div>
+      <div class="hero-tag">💎 TON Pay</div>
+      <div class="hero-tag">🌍 Global</div>
+      <div class="hero-tag">✅ Verified</div>
+    </div>
+  </div>
+  <div class="search-wrap">
+    <div class="search">
+      <span style="opacity:0.3;font-size:14px">🔍</span>
+      <input placeholder="Search gift cards..." oninput="doSearch(this.value)">
+    </div>
+  </div>
+  <div class="cats">
+    <button class="cat on" onclick="filterCat('all',this)">All</button>
+    <button class="cat" onclick="filterCat('gaming',this)">🎮 Gaming</button>
+    <button class="cat" onclick="filterCat('streaming',this)">🎬 Streaming</button>
+    <button class="cat" onclick="filterCat('shopping',this)">🛒 Shopping</button>
+  </div>
+  <div class="sec">
+    <div class="sec-head"><div class="sec-title">Gift Cards</div><div class="sec-sub" id="card-count">7 cards</div></div>
+    <div class="grid" id="cards-grid"></div>
+  </div>
+  <div class="trust-box">
+    <div class="trust-title">Why customers trust us</div>
+    <div class="trust-row"><div class="ti">🔐</div><div class="tt"><div class="tt-name">Blockchain Verified</div><div class="tt-desc">Every payment verified on-chain. No fraud, no chargebacks.</div></div><div class="tc">✓</div></div>
+    <div class="trust-row"><div class="ti">⚡</div><div class="tt"><div class="tt-name">Instant Delivery</div><div class="tt-desc">Card codes delivered within minutes after confirmation.</div></div><div class="tc">✓</div></div>
+    <div class="trust-row"><div class="ti">🛡️</div><div class="tt"><div class="tt-name">100% Authentic</div><div class="tt-desc">All cards sourced from official distributors only.</div></div><div class="tc">✓</div></div>
+    <div class="trust-row"><div class="ti">💬</div><div class="tt"><div class="tt-name">24/7 Support</div><div class="tt-desc">Real human support. Average reply under 3 minutes.</div></div><div class="tc">✓</div></div>
+    <div class="trust-row"><div class="ti">⭐</div><div class="tt"><div class="tt-name">Loyalty Rewards</div><div class="tt-desc">Earn points on every purchase. Redeem for discounts.</div></div><div class="tc">✓</div></div>
+  </div>
+  <div class="sec"><div class="sec-head"><div class="sec-title">Customer Reviews</div><div class="sec-sub">4.9 / 5.0</div></div></div>
+  <div class="rev-scroll">
+    <div class="rev"><div class="rev-stars">★★★★★</div><div class="rev-text">"Got my Amazon card in 5 min after sending USDT. Super fast and legit!"</div><div class="rev-user"><div class="rev-av" style="background:#5B8EF0">A</div><div><div class="rev-name">Ahmed K.</div><div class="rev-date">2 days ago</div></div></div></div>
+    <div class="rev"><div class="rev-stars">★★★★★</div><div class="rev-text">"Best gift card store on Telegram. Bought 5 times, never disappointed."</div><div class="rev-user"><div class="rev-av" style="background:#8B5CF6">S</div><div><div class="rev-name">Sara M.</div><div class="rev-date">5 days ago</div></div></div></div>
+    <div class="rev"><div class="rev-stars">★★★★★</div><div class="rev-text">"Paid with TON wallet, card arrived instantly. Amazing service!"</div><div class="rev-user"><div class="rev-av" style="background:#10B981">M</div><div><div class="rev-name">Mohammed R.</div><div class="rev-date">1 week ago</div></div></div></div>
+    <div class="rev"><div class="rev-stars">★★★★★</div><div class="rev-text">"Very professional. Fast delivery and honest prices. Highly recommended!"</div><div class="rev-user"><div class="rev-av" style="background:#F59E0B">L</div><div><div class="rev-name">Layla H.</div><div class="rev-date">2 weeks ago</div></div></div></div>
+  </div>
+</div>
+
+<!-- ORDERS -->
+<div class="page" id="pg-orders">
+  <div style="padding:14px">
+    <div class="sec-head" style="margin-bottom:14px"><div class="sec-title">My Orders</div><div class="sec-sub" id="orders-count">0 orders</div></div>
+    <div class="empty" id="orders-empty"><div class="empty-ic">📭</div><div class="empty-title">No Orders Yet</div><div class="empty-desc">Your purchased gift cards will appear here after payment confirmation.</div></div>
+    <div id="orders-list"></div>
+  </div>
+</div>
+
+<!-- PROFILE -->
+<div class="page" id="pg-profile">
+  <div class="prof-hero">
+    <div class="prof-av" id="prof-av">👤</div>
+    <div class="prof-name" id="prof-name">Loading...</div>
+    <div class="prof-id" id="prof-id">Telegram User</div>
+    <div class="prof-stats">
+      <div class="ps"><div class="ps-num" id="ps-orders">0</div><div class="ps-label">Orders</div></div>
+      <div class="ps"><div class="ps-num" id="ps-pts" style="color:#FCD34D">0</div><div class="ps-label">Points</div></div>
+      <div class="ps"><div class="ps-num" id="ps-refs" style="color:var(--accent)">0</div><div class="ps-label">Referrals</div></div>
+    </div>
+  </div>
+  <div class="loyalty-card">
+    <div class="loy-label">⭐ Loyalty Points</div>
+    <div class="loy-pts" id="loy-pts">0</div>
+    <div class="loy-sub">Earn 10 pts per $1 spent</div>
+    <div class="loy-bar-bg"><div class="loy-bar" id="loy-bar" style="width:0%"></div></div>
+    <div class="loy-next" id="loy-next">0 / 100 pts to next reward</div>
+  </div>
+  <div class="ref-card">
+    <div class="ref-title">🎁 Referral Program</div>
+    <div class="ref-desc">Share your link and earn 50 points for every friend who makes a purchase!</div>
+    <div class="ref-code"><div class="ref-code-text" id="ref-code">NOVA-XXXX</div><button class="ref-copy" onclick="copyRef()">Copy Link</button></div>
+    <div class="ref-info">
+      <div class="ref-info-item"><div class="rii-num" id="ref-invited">0</div><div class="rii-label">Invited</div></div>
+      <div class="ref-info-item"><div class="rii-num" id="ref-earned" style="color:#FCD34D">0</div><div class="rii-label">Pts Earned</div></div>
+    </div>
+  </div>
+  <div class="trust-box" style="margin:0 14px 14px">
+    <div class="trust-title">Account</div>
+    <div class="trust-row" onclick="navTo('orders')"><div class="ti">📦</div><div class="tt"><div class="tt-name">My Orders</div><div class="tt-desc">View all your purchases</div></div><div style="color:var(--t2)">›</div></div>
+    <div class="trust-row" onclick="navTo('support')"><div class="ti">💬</div><div class="tt"><div class="tt-name">Support</div><div class="tt-desc">Get help from our team</div></div><div style="color:var(--t2)">›</div></div>
+  </div>
+</div>
+
+<!-- SUPPORT -->
+<div class="page" id="pg-support">
+  <div style="padding:14px">
+    <div class="sec-head" style="margin-bottom:14px"><div class="sec-title">Support</div></div>
+    <div class="supp-box">
+      <div class="supp-row" onclick="openTg()"><div class="si">✈️</div><div class="st"><div class="st-name">Telegram Support</div><div class="st-desc">Chat with us — avg. reply under 3 min</div></div><div style="color:var(--t2)">›</div></div>
+      <div class="supp-row"><div class="si">❓</div><div class="st"><div class="st-name">How It Works</div><div class="st-desc">Browse → Select → Pay → Receive code instantly</div></div></div>
+      <div class="supp-row"><div class="si">💎</div><div class="st"><div class="st-name">Accepted Payments</div><div class="st-desc">TON (Telegram Wallet), USDT TRC20, USDT ERC20</div></div></div>
+      <div class="supp-row"><div class="si">⚡</div><div class="st"><div class="st-name">Delivery Time</div><div class="st-desc">1–15 minutes after blockchain confirmation</div></div></div>
+      <div class="supp-row"><div class="si">🔄</div><div class="st"><div class="st-name">Refund Policy</div><div class="st-desc">Invalid cards replaced immediately. Contact support.</div></div></div>
+      <div class="supp-row"><div class="si">⭐</div><div class="st"><div class="st-name">Loyalty Points</div><div class="st-desc">Earn 10 pts per $1 spent. Redeem for discounts.</div></div></div>
+    </div>
+  </div>
+</div>
+```
+
+  </div>
+
+  <div class="bottom-nav">
+    <div class="nav-btn on" onclick="navTo('home',this)" id="nav-home"><div class="nav-ic">🏪</div><div class="nav-lb">Store</div></div>
+    <div class="nav-btn" onclick="navTo('orders',this)" id="nav-orders"><div class="nav-ic">📦</div><div class="nav-lb">Orders</div></div>
+    <div class="nav-btn" onclick="navTo('profile',this)" id="nav-profile"><div class="nav-ic">👤</div><div class="nav-lb">Profile</div></div>
+    <div class="nav-btn" onclick="navTo('support',this)" id="nav-support"><div class="nav-ic">💬</div><div class="nav-lb">Support</div></div>
+  </div>
+</div>
+
+<div class="overlay" id="ov-product" onclick="closeOv(event,'ov-product')">
+  <div class="sheet"><div class="handle"></div><div class="sheet-body" id="product-body"></div></div>
+</div>
+<div class="overlay" id="ov-pay" onclick="closeOv(event,'ov-pay')">
+  <div class="sheet"><div class="handle"></div><div class="sheet-body" id="pay-body"></div></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const USDT_TRC='TERUMbyPWyMHMijgSBrYZ9UWk4UquBs3ub';
+const USDT_ERC='TERUMbyPWyMHMijgSBrYZ9UWk4UquBs3ub';
+const TON_ADDR='UQDNEWfXJe0hCYsfZ6q4oMKB5ns3Y8dOktNkm00CGL7WyhJy';
+const BOT='Novaacards_bot';
+const tg=window.Telegram?.WebApp;
+if(tg){tg.ready();tg.expand();}
+const tgUser=tg?.initDataUnsafe?.user||{first_name:'Guest',id:'000000'};
+let state=JSON.parse(localStorage.getItem('nova_state')||'null')||{pts:0,orders:[],refCount:0,refPts:0};
+let selAmt=0,curProd=null,curNet='usdt-trc';
+function saveState(){localStorage.setItem('nova_state',JSON.stringify(state));}
+
+// CARD VISUALS — custom SVG designs per brand
+const cardVisuals = {
+  amazon: {
+    bg:'#FF9900',
+    svg:`<svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="amz" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#FF9900"/><stop offset="100%" style="stop-color:#CC6600"/></linearGradient></defs>
+      <rect width="200" height="100" fill="url(#amz)"/>
+      <circle cx="160" cy="20" r="40" fill="rgba(255,255,255,0.05)"/>
+      <circle cx="30" cy="80" r="30" fill="rgba(0,0,0,0.1)"/>
+      <rect x="0" y="0" width="200" height="100" fill="rgba(0,0,0,0.15)"/>
+      <text x="100" y="42" font-family="Arial Black,sans-serif" font-size="22" font-weight="900" fill="white" text-anchor="middle" opacity="0.95">amazon</text>
+      <rect x="60" y="50" width="80" height="3" rx="1.5" fill="#FF9900" opacity="0.8"/>
+      <text x="100" y="68" font-family="Arial,sans-serif" font-size="10" fill="rgba(255,255,255,0.7)" text-anchor="middle" letter-spacing="3">GIFT CARD</text>
+    </svg>`,
+    icon:'🛒'
+  },
+  googleplay: {
+    bg:'#00875F',
+    svg:`<svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="gp" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#00C853"/><stop offset="100%" style="stop-color:#00875F"/></linearGradient></defs>
+      <rect width="200" height="100" fill="url(#gp)"/>
+      <circle cx="170" cy="15" r="45" fill="rgba(255,255,255,0.06)"/>
+      <polygon points="30,25 30,75 70,50" fill="rgba(255,255,255,0.15)"/>
+      <text x="110" y="44" font-family="Arial,sans-serif" font-size="11" font-weight="700" fill="white" text-anchor="middle" opacity="0.9">Google Play</text>
+      <text x="110" y="62" font-family="Arial Black,sans-serif" font-size="9" fill="rgba(255,255,255,0.6)" text-anchor="middle" letter-spacing="2">GIFT CARD</text>
+      <rect x="75" y="48" width="70" height="2" rx="1" fill="rgba(255,255,255,0.3)"/>
+    </svg>`,
+    icon:'▶️'
+  },
+  itunes: {
+    bg:'#FB2D48',
+    svg:`<svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="it" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#FF2D55"/><stop offset="100%" style="stop-color:#BF0030"/></linearGradient></defs>
+      <rect width="200" height="100" fill="url(#it)"/>
+      <circle cx="155" cy="18" r="50" fill="rgba(255,255,255,0.06)"/>
+      <circle cx="40" cy="75" r="35" fill="rgba(0,0,0,0.1)"/>
+      <text x="100" y="38" font-family="Arial,sans-serif" font-size="11" font-weight="300" fill="rgba(255,255,255,0.9)" text-anchor="middle" letter-spacing="2">iTunes</text>
+      <circle cx="100" cy="55" r="12" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+      <polygon points="97,50 97,60 107,55" fill="white" opacity="0.8"/>
+      <text x="100" y="80" font-family="Arial,sans-serif" font-size="8" fill="rgba(255,255,255,0.5)" text-anchor="middle" letter-spacing="3">GIFT CARD</text>
+    </svg>`,
+    icon:'🎵'
+  },
+  steam: {
+    bg:'#1B2838',
+    svg:`<svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="st" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#2A4A6B"/><stop offset="100%" style="stop-color:#1B2838"/></linearGradient></defs>
+      <rect width="200" height="100" fill="url(#st)"/>
+      <circle cx="160" cy="20" r="50" fill="rgba(102,192,244,0.06)"/>
+      <circle cx="25" cy="70" r="40" fill="rgba(0,0,0,0.2)"/>
+      <text x="100" y="44" font-family="Arial Black,sans-serif" font-size="18" font-weight="900" fill="white" text-anchor="middle" opacity="0.95" letter-spacing="1">STEAM</text>
+      <rect x="40" y="50" width="120" height="2" rx="1" fill="rgba(102,192,244,0.4)"/>
+      <text x="100" y="66" font-family="Arial,sans-serif" font-size="9" fill="rgba(102,192,244,0.7)" text-anchor="middle" letter-spacing="3">WALLET CARD</text>
+    </svg>`,
+    icon:'🎮'
+  },
+  netflix: {
+    bg:'#E50914',
+    svg:`<svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="nf" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#E50914"/><stop offset="100%" style="stop-color:#8B0000"/></linearGradient></defs>
+      <rect width="200" height="100" fill="url(#nf)"/>
+      <rect x="0" y="0" width="200" height="100" fill="rgba(0,0,0,0.2)"/>
+      <rect x="20" y="15" width="6" height="70" fill="rgba(255,255,255,0.9)"/>
+      <rect x="174" y="15" width="6" height="70" fill="rgba(255,255,255,0.9)"/>
+      <text x="100" y="62" font-family="Arial Black,sans-serif" font-size="28" font-weight="900" fill="rgba(255,255,255,0.15)" text-anchor="middle">N</text>
+      <text x="100" y="48" font-family="Arial Black,sans-serif" font-size="16" font-weight="900" fill="white" text-anchor="middle" letter-spacing="1">NETFLIX</text>
+      <text x="100" y="66" font-family="Arial,sans-serif" font-size="9" fill="rgba(255,255,255,0.5)" text-anchor="middle" letter-spacing="3">GIFT CARD</text>
+    </svg>`,
+    icon:'🎬'
+  },
+  playstation: {
+    bg:'#003087',
+    svg:`<svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="ps" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#0070D1"/><stop offset="100%" style="stop-color:#003087"/></linearGradient></defs>
+      <rect width="200" height="100" fill="url(#ps)"/>
+      <circle cx="165" cy="15" r="55" fill="rgba(255,255,255,0.04)"/>
+      <text x="100" y="35" font-family="Arial,sans-serif" font-size="9" fill="rgba(255,255,255,0.6)" text-anchor="middle" letter-spacing="2">PLAYSTATION</text>
+      <text x="100" y="58" font-family="Arial Black,sans-serif" font-size="32" font-weight="900" fill="rgba(255,255,255,0.12)" text-anchor="middle">PS</text>
+      <circle cx="75" cy="55" r="8" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2"/>
+      <rect x="86" y="47" width="4" height="16" rx="1" fill="rgba(255,255,255,0.5)"/>
+      <rect x="82" y="51" width="12" height="4" rx="1" fill="rgba(255,255,255,0.5)"/>
+      <circle cx="107" cy="55" r="4" fill="rgba(255,100,100,0.8)"/>
+      <circle cx="120" cy="49" r="4" fill="rgba(100,100,255,0.8)"/>
+      <circle cx="120" cy="61" r="4" fill="rgba(100,255,100,0.8)"/>
+      <circle cx="133" cy="55" r="4" fill="rgba(255,200,0,0.8)"/>
+      <text x="100" y="82" font-family="Arial,sans-serif" font-size="8" fill="rgba(255,255,255,0.4)" text-anchor="middle" letter-spacing="3">GIFT CARD</text>
+    </svg>`,
+    icon:'🕹️'
+  },
+  xbox: {
+    bg:'#107C10',
+    svg:`<svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="xb" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#52B043"/><stop offset="100%" style="stop-color:#107C10"/></linearGradient></defs>
+      <rect width="200" height="100" fill="url(#xb)"/>
+      <circle cx="100" cy="50" r="35" fill="rgba(0,0,0,0.15)"/>
+      <circle cx="100" cy="50" r="28" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+      <text x="100" y="56" font-family="Arial Black,sans-serif" font-size="22" font-weight="900" fill="rgba(255,255,255,0.9)" text-anchor="middle">XBOX</text>
+      <text x="100" y="82" font-family="Arial,sans-serif" font-size="8" fill="rgba(255,255,255,0.4)" text-anchor="middle" letter-spacing="3">GIFT CARD</text>
+    </svg>`,
+    icon:'🟢'
+  }
+};
+
+const products=[
+  {id:1,name:'Amazon',key:'amazon',cat:'shopping',desc:'Shop millions of items globally on Amazon.com and regional stores.',amts:['$10','$25','$50','$100','$200'],prices:['10.5 USDT','26 USDT','52 USDT','103 USDT','205 USDT'],usd:[10,25,50,100,200]},
+  {id:2,name:'Google Play',key:'googleplay',cat:'gaming',desc:'Apps, games and subscriptions for all Android devices.',amts:['$10','$25','$50','$100'],prices:['10.5 USDT','26 USDT','52 USDT','103 USDT'],usd:[10,25,50,100]},
+  {id:3,name:'iTunes',key:'itunes',cat:'streaming',desc:'Music, movies and apps for iPhone, iPad and Mac.',amts:['$10','$25','$50','$100'],prices:['10.5 USDT','26 USDT','52 USDT','103 USDT'],usd:[10,25,50,100]},
+  {id:4,name:'Steam',key:'steam',cat:'gaming',desc:'Thousands of PC games and DLC on Steam platform.',amts:['$10','$20','$50','$100'],prices:['10.5 USDT','21 USDT','52 USDT','103 USDT'],usd:[10,20,50,100]},
+  {id:5,name:'Netflix',key:'netflix',cat:'streaming',desc:'Stream the best shows and movies worldwide.',amts:['$15','$30','$50','$100'],prices:['15.5 USDT','31 USDT','52 USDT','103 USDT'],usd:[15,30,50,100]},
+  {id:6,name:'PlayStation',key:'playstation',cat:'gaming',desc:'Games, PS Plus and DLC on PlayStation Network.',amts:['$10','$20','$50','$100'],prices:['10.5 USDT','21 USDT','52 USDT','103 USDT'],usd:[10,20,50,100]},
+  {id:7,name:'Xbox',key:'xbox',cat:'gaming',desc:'Games and Xbox Game Pass content for all Xbox platforms.',amts:['$10','$25','$50','$100'],prices:['10.5 USDT','26 USDT','52 USDT','103 USDT'],usd:[10,25,50,100]},
+];
+
+function renderCards(list){
+  const g=document.getElementById('cards-grid');
+  document.getElementById('card-count').textContent=list.length+' cards';
+  g.innerHTML=list.map((p,i)=>{
+    const v=cardVisuals[p.key];
+    return `<div class="card" style="animation-delay:${i*0.05}s" onclick="openProduct(${p.id})">
+      <div class="card-visual">${v.svg}</div>
+      <div class="card-info">
+        <div class="card-name">${p.name}</div>
+        <div class="card-price">From ${p.prices[0]}</div>
+        <div class="card-foot"><div class="card-chip">USDT · TON</div><span style="color:var(--t2);font-size:12px">›</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterCat(cat,btn){
+  document.querySelectorAll('.cat').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderCards(cat==='all'?products:products.filter(p=>p.cat===cat));
+}
+function doSearch(q){renderCards(products.filter(p=>p.name.toLowerCase().includes(q.toLowerCase())));}
+
+function openProduct(id){
+  curProd=products.find(p=>p.id===id);selAmt=0;
+  const v=cardVisuals[curProd.key];
+  document.getElementById('product-body').innerHTML=`
+    <div class="sheet-img">${v.svg}</div>
+    <div class="sheet-title">${curProd.name} Gift Card</div>
+    <div class="sheet-desc">${curProd.desc}</div>
+    <div class="label">Select Amount</div>
+    <div class="amt-grid">
+      ${curProd.amts.map((a,i)=>`<div class="amt ${i===0?'on':''}" onclick="selAmount(${i},this)">${a}<div class="asub">${curProd.prices[i]}</div></div>`).join('')}
+    </div>
+    <div class="summary">
+      <div class="sum-row"><span class="sum-label">Card Value</span><span class="sum-val" id="sv-amt">${curProd.amts[0]}</span></div>
+      <div class="sum-row"><span class="sum-label">You Pay</span><span class="sum-val a" id="sv-price">${curProd.prices[0]}</span></div>
+      <div class="sum-row"><span class="sum-label">Points Earned</span><span class="sum-val" style="color:#FCD34D" id="sv-pts">+${curProd.usd[0]*10} pts</span></div>
+      <div class="sum-row"><span class="sum-label">Delivery</span><span class="sum-val g">⚡ Instant</span></div>
+    </div>
+    <button class="btn-main" id="buy-btn" onclick="openPay()">Buy Now — ${curProd.prices[0]}</button>
+  `;
+  document.getElementById('ov-product').classList.add('on');
+}
+
+function selAmount(i,el){
+  selAmt=i;
+  document.querySelectorAll('.amt').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('sv-amt').textContent=curProd.amts[i];
+  document.getElementById('sv-price').textContent=curProd.prices[i];
+  document.getElementById('sv-pts').textContent='+'+curProd.usd[i]*10+' pts';
+  document.getElementById('buy-btn').textContent='Buy Now — '+curProd.prices[i];
+}
+
+function openPay(){
+  document.getElementById('ov-product').classList.remove('on');
+  const p=curProd,amt=p.amts[selAmt],price=p.prices[selAmt];
+  curNet='usdt-trc';
+  document.getElementById('pay-body').innerHTML=`
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-size:32px;margin-bottom:8px">💳</div>
+      <div style="font-size:17px;font-weight:800;margin-bottom:3px">Complete Payment</div>
+      <div style="font-size:12px;color:var(--t2)">Send <strong style="color:var(--accent)">${price}</strong> for <strong>${p.name} ${amt}</strong></div>
+    </div>
+    <div class="label">Choose Payment Method</div>
+    <div class="pay-methods">
+      <div class="pay-method ton-m" id="pm-ton" onclick="switchNet('ton',this)">
+        <div class="pm-icon">💎</div><div class="pm-name">TON</div><div class="pm-sub">Telegram Wallet</div>
+      </div>
+      <div class="pay-method on" id="pm-trc" onclick="switchNet('usdt-trc',this)">
+        <div class="pm-icon">💵</div><div class="pm-name">USDT</div><div class="pm-sub">TRC20</div>
+      </div>
+      <div class="pay-method" id="pm-erc" onclick="switchNet('usdt-erc',this)">
+        <div class="pm-icon">💵</div><div class="pm-name">USDT</div><div class="pm-sub">ERC20</div>
+      </div>
+    </div>
+    <div id="addr-section">
+      <div class="label">Send to this address</div>
+      <div class="addr-box" id="pay-addr">${USDT_TRC}</div>
+      <button class="btn-copy" onclick="copyAddr()">📋 Copy Address</button>
+    </div>
+    <button id="btn-ton-pay" style="display:none" class="btn-ton" onclick="payTon()">💎 Open Telegram Wallet</button>
+    <div class="warn">⚠️ Send exactly <strong>${price}</strong>. Wrong network = lost funds. Double-check before sending.</div>
+    <button class="btn-confirm" id="btn-confirm" onclick="confirmPay()">✅ I've Sent the Payment</button>
+    <div style="font-size:10px;color:var(--t2);text-align:center;margin-top:12px;line-height:1.5;padding-bottom:6px">After confirming, we verify on-chain and deliver your card within 15 minutes via this bot.</div>
+  `;
+  document.getElementById('ov-pay').classList.add('on');
+}
+
+function switchNet(net,el){
+  curNet=net;
+  document.querySelectorAll('.pay-method').forEach(m=>m.classList.remove('on'));
+  el.classList.add('on');
+  const isTon=net==='ton';
+  document.getElementById('pay-addr').textContent=net==='usdt-erc'?USDT_ERC:net==='ton'?TON_ADDR:USDT_TRC;
+  document.getElementById('addr-section').style.display=isTon?'none':'block';
+  document.getElementById('btn-ton-pay').style.display=isTon?'block':'none';
+  document.getElementById('btn-confirm').style.display=isTon?'none':'block';
+}
+
+function payTon(){
+  const p=curProd,price=p.prices[selAmt];
+  const comment=encodeURIComponent('Novaacards '+p.name+' '+p.amts[selAmt]);
+  window.open('ton://transfer/'+TON_ADDR+'?amount='+Math.round(parseFloat(price)*1e9)+'&text='+comment,'_blank');
+  setTimeout(()=>{
+    document.getElementById('btn-ton-pay').style.display='none';
+    document.getElementById('btn-confirm').style.display='block';
+    document.getElementById('btn-confirm').textContent='✅ I Sent TON Payment';
+  },1500);
+}
+
+function copyAddr(){navigator.clipboard?.writeText(document.getElementById('pay-addr').textContent);showToast('✅ Address copied!');}
+
+function confirmPay(){
+  document.getElementById('ov-pay').classList.remove('on');
+  const p=curProd,amt=p.amts[selAmt],price=p.prices[selAmt],pts=p.usd[selAmt]*10;
+  state.pts+=pts;
+  state.orders.unshift({id:Date.now(),name:p.name+' '+amt,emoji:cardVisuals[p.key].icon,price:price,pts:pts,status:'pending',date:new Date().toLocaleDateString()});
+  saveState();updateUI();
+  showToast('⏳ Order placed! +'+pts+' pts earned 🎉');
+  navTo('orders');
+}
+
+function renderOrders(){
+  const list=document.getElementById('orders-list');
+  const empty=document.getElementById('orders-empty');
+  document.getElementById('orders-count').textContent=state.orders.length+' orders';
+  if(!state.orders.length){empty.style.display='block';list.innerHTML='';return;}
+  empty.style.display='none';
+  list.innerHTML=state.orders.map(o=>`
+    <div class="order-item">
+      <div class="oi-em">${o.emoji}</div>
+      <div class="oi-info"><div class="oi-name">${o.name}</div><div class="oi-price">Paid: ${o.price} · +${o.pts} pts</div><div class="oi-date">${o.date}</div></div>
+      <div class="badge ${o.status==='done'?'b-done':'b-pending'}">${o.status==='done'?'✅ Delivered':'⏳ Pending'}</div>
+    </div>`).join('');
+}
+
+function renderProfile(){
+  const name=tgUser.first_name+(tgUser.last_name?' '+tgUser.last_name:'');
+  const initials=name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('prof-av').textContent=initials||'👤';
+  document.getElementById('prof-name').textContent=name||'Guest';
+  document.getElementById('prof-id').textContent='@'+(tgUser.username||'user')+' · ID: '+(tgUser.id||'---');
+  document.getElementById('ps-orders').textContent=state.orders.length;
+  document.getElementById('ps-pts').textContent=state.pts;
+  document.getElementById('ps-refs').textContent=state.refCount;
+  document.getElementById('loy-pts').textContent=state.pts;
+  document.getElementById('loy-bar').style.width=Math.min((state.pts%100),100)+'%';
+  document.getElementById('loy-next').textContent=(state.pts%100)+' / 100 pts to next reward';
+  const code='NOVA-'+(tgUser.id||'0000').toString().slice(-4).toUpperCase();
+  document.getElementById('ref-code').textContent=code;
+  document.getElementById('ref-invited').textContent=state.refCount;
+  document.getElementById('ref-earned').textContent=state.refPts;
+}
+
+function copyRef(){
+  navigator.clipboard?.writeText('https://t.me/'+BOT+'?start='+document.getElementById('ref-code').textContent);
+  showToast('✅ Referral link copied!');
+}
+
+function navTo(page,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nav-btn').forEach(n=>n.classList.remove('on'));
+  document.getElementById('pg-'+page).classList.add('on');
+  const nav=el||document.getElementById('nav-'+page);
+  if(nav)nav.classList.add('on');
+  document.querySelector('.page-content').scrollTo(0,0);
+  if(page==='orders')renderOrders();
+  if(page==='profile')renderProfile();
+}
+
+function closeOv(e,id){if(e.target===document.getElementById(id))document.getElementById(id).classList.remove('on');}
+function updateUI(){document.getElementById('hdr-pts').textContent=state.pts;}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2500);}
+function openTg(){window.open('https://t.me/'+BOT,'_blank');}
+
+renderCards(products);updateUI();
+</script>
+
+</body>
+</html>
